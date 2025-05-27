@@ -245,7 +245,9 @@ ui <- dashboardPage(
                     tags$ul(
                       tags$li("Piotr Wilma (124832)"),
                       tags$li("Mikołaj Kaczmarek (124942)"),
-                      tags$li("Wiktor Pietrzyński (numer albumu)")
+                      tags$li("Wiktor Pietrzyński (125134)"),
+                      tags$li("Łukasz Dębski (126759)"),
+                      tags$li("Marek Halber (122814)"),
                     ),
                     h4("Źródło danych: Yahoo Finance (via quantmod package)"),
                 )

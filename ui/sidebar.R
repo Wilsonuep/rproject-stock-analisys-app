@@ -20,6 +20,7 @@ sidebar <- dashboardSidebar(
     label = "Wybierz indeksy:",
     choices = c("S&P 500" = "^GSPC", "DAX" = "^GDAXI", "FTSE" = "^FTSE",
                 "CAC 40" = "^FCHI", "EURO STOXX 50" = "^STOXX50E"),
+    selected = c("^GSPC", "^GDAXI", "^FTSE"),
     multiple = TRUE
   ),
   selectInput(
@@ -27,6 +28,7 @@ sidebar <- dashboardSidebar(
     label = "Wybierz akcje:",
     choices = c("Apple" = "AAPL", "Nvidia" = "NVDA", "Microsoft" = "MSFT",
                 "Google" = "GOOG", "Meta" = "META"),
+    selected = c("AAPL", "NVDA", "MSFT"),
     multiple = TRUE
   ),
   selectInput(
@@ -34,6 +36,7 @@ sidebar <- dashboardSidebar(
     label = "Wybierz waluty:",
     choices = c("Euro -> Dolar" = "EURUSD=X", "Funt -> Dolar" = "GBPUSD=X", "Euro -> Funt" = "EURGBP=X",
                 "Euro -> Złoty" = "EURPLN=X", "Dolar -> Złoty" = "USDPLN=X", "Funt -> Złoty" = "GBPPLN=X"),
+    selected = c("EURUSD=X", "EURPLN=X", "USDPLN=X"),
     multiple = TRUE
   ),
   br(),

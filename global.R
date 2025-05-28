@@ -16,5 +16,10 @@ library(PerformanceAnalytics)
 library(zoo)
 library(xts)
 
+# Load helper functions
+source("helpers/data_functions.R")
+source("helpers/plotting_functions.R")
+source("helpers/prediction_models.R")
+
 # Define any global variables or helper functions
 # This file is loaded before ui.R and server.R

@@ -140,10 +140,10 @@ Poniżej znajduje się podział zadań między członków zespołu:
 ### Podstrony aplikacji:
 
 1. **Overview** - Mikołaj (@AN0DA)
-   - [ ] Implementacja infoBoxów z największymi zmianami
-   - [ ] Wykres zbiorczy dla indeksów
-   - [ ] Wykres zbiorczy dla akcji
-   - [ ] Wykres zbiorczy dla walut
+   - [x] Implementacja infoBoxów z największymi zmianami
+   - [x] Wykres zbiorczy dla indeksów
+   - [x] Wykres zbiorczy dla akcji
+   - [x] Wykres zbiorczy dla walut
 
 2. **Eksplorator danych** - Marek (@elogawron)
    - [ ] Implementacja ładowania danych
@@ -185,8 +185,8 @@ Poniżej znajduje się podział zadań między członków zespołu:
 
 - Piotr Wilma (@Wilsonuep) - 124832
 - Mikołaj Kaczmarek (@AN0DA) - 124942
-- Wiktor Pietrzyński (@WiktorPietrzynski)
-- Łukasz Dębski (@L-debski)
-- Marek Gawron (@elogawron)
+- Wiktor Pietrzyński (@WiktorPietrzynski) - 125134
+- Łukasz Dębski (@L-debski) - 126759
+- Marek Halber (@elogawron) - 122814
 
 **Źródło danych**: Yahoo Finance (via pakiet quantmod)

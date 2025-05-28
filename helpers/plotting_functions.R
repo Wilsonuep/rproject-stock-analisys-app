@@ -1,12 +1,13 @@
-# Helper functions for creating plots
-
 # Function to create market performance comparison plot
-create_performance_plot <- function(data, title = "Market Performance") {
+create_performance_plot <- function(data, title = "Market Performance", method = "percent_change") {
   if(is.null(data) || nrow(data) == 0) {
     return(plot_ly() %>%
              layout(title = paste(title, "- No data available"),
                     showlegend = FALSE))
   }
+
+  # Normalize data for comparison
+  normalized_data <- normalize_data(data, method = method)
 
   # Create a plot for each symbol
   p <- plot_ly() %>%
@@ -16,11 +17,11 @@ create_performance_plot <- function(data, title = "Market Performance") {
            hovermode = "closest")
 
   # Add a line for each symbol
-  for(sym in unique(data$symbol)) {
-    sym_data <- data[data$symbol == sym, ]
+  for(sym in unique(normalized_data$symbol)) {
+    sym_data <- normalized_data[normalized_data$symbol == sym, ]
 
-    # Get display name (convert symbol code to readable name)
-    display_name <- sym
+    # Get display name
+    display_name <- get_display_name(sym)
 
     p <- p %>% add_trace(
       x = sym_data$date,

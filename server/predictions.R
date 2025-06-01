@@ -6,6 +6,77 @@ predictions_server <- function(input, output, session) {
     model_type = NULL
   )
 
+  #General function to split time sereis
+  split_time_series <- function(data, train_prop = 0.8) {
+    n <- length(data)
+    train_size <- floor(n * train_prop)
+    list(
+      train = window(data, end = time(data)[train_size]),
+      test = window(data, start = time(data)[train_size + 1])
+    )
+  }
+
+  #General function to plot data from market with data estimated
+  plot_forecast <- function(data, forecast, data_label = "Dane giełdowe", forecast_label = "Predykcja") {
+    data_time <- time(data)
+    data_values <- as.numeric(data)
+
+    df_data <- tibble(
+      time = data_time,
+      value = data_values,
+      type = data_label
+    )
+
+    fc_time <- time(forecast$mean)
+    fc_values <- as.numeric(forecast$mean)
+    fc_lower <- as.numeric(forecast$lower[,2])  # 95% CI
+    fc_upper <- as.numeric(forecast$upper[,2])
+
+    df_forecast <- tibble(
+      time = fc_time,
+      value = fc_values,
+      lower = fc_lower,
+      upper = fc_upper,
+      type = forecast_label
+    )
+
+    df_all <- bind_rows(df_data, df_forecast)
+
+    ggplot(df_all, aes(x = time, y = value, color = type)) +
+      geom_line(size = 1) +
+      geom_ribbon(
+        data = df_forecast,
+        aes(ymin = lower, ymax = upper, fill = type),
+        alpha = 0.2, color = NA
+      ) +
+      scale_color_manual(values = setNames(c("black", "red"), c(data_label, forecast_label))) +
+      scale_fill_manual(values = setNames("red", forecast_label)) +
+      labs(
+        title = "Wykres predykcji",
+        x = "Czas", y = "Wartość", color = "Legenda", fill = "Przedział ufności"
+      ) +
+      theme_minimal()
+  }
+
+  #Function to predict, plot and describe accuracy naive models
+  predict_with_naive <- function(data, horizon) {
+    prediction <- naive(data, h = horizon)
+
+    sp_data <- split_time_series(data)
+    train <- sp_data$train
+    test <- sp_data$test
+    acc_model <- naive(train, h = length(test))
+    acc <- accuracy(acc_model, test)
+
+    plot_obj <- plot_forecast(data, prediction, forecast_label = "Predykcja modelu naiwnego")
+
+    return(list(
+      prediction = prediction,
+      accuracy = acc,
+      plot = plot_obj
+    ))
+  }
+
   # Get data for selected instrument
   selected_instrument_data <- reactive({
     req(input$market)

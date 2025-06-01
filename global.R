@@ -15,6 +15,12 @@ library(scales)
 library(PerformanceAnalytics)
 library(zoo)
 library(xts)
+#Libraries for predictions
+library(forecast)
+library(randomForest)
+library(xgboost)
+library(yardstick)
+library(dplyr)
 
 # Load helper functions
 source("helpers/data_functions.R")

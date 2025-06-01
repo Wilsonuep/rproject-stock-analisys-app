@@ -23,7 +23,7 @@ predictions_tab <- tabItem(tabName = "predictions",
                                             "ARIMA" = "ARIMA",
                                             "Las losowy na opóźnieniach" = "random_forest",
                                             "XGBoost na opóźnieniach" = "xgb_boost"))),
-          column(4, sliderInput("pred_horizon", "Okres prognozowania w dniach:",
+          column(4, sliderInput("pred_horizon", "Okres prognozowania w wybranych dla interwału jednostkach:",
                                 min = 7, max = 60, value = 14))
         ),
         actionButton("run_model", "Zbuduj model predykcyjny", icon = icon("gears"))

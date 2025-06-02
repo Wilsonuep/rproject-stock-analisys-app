@@ -5,7 +5,6 @@ library(shinyjs)
 library(DT)
 library(plotly)
 library(quantmod)
-library(eurostat)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
@@ -19,8 +18,8 @@ library(xts)
 library(forecast)
 library(randomForest)
 library(xgboost)
-library(yardstick)
-library(dplyr)
+library(tibble)
+
 
 # Load helper functions
 source("helpers/data_functions.R")

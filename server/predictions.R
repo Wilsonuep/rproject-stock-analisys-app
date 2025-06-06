@@ -74,7 +74,7 @@ predictions_server <- function(input, output, session) {
     train <- sp_data$train
     test <- sp_data$test
     acc_model <- naive(train, h = length(test))
-    acc <- accuracy(acc_model, test)
+    acc <- accuracy(acc_model, test)[, c("RMSE", "MAE", "MAPE")]
 
     plot_pred <- plot_forecast(
       data = tibble(time = data$time, price = data$price),
@@ -101,7 +101,7 @@ predictions_server <- function(input, output, session) {
     test <- sp_data$test$price
     acc_model <- auto.arima(train)
     acc_prediction <- forecast(acc_model, h = length(test))
-    acc <- accuracy(acc_prediction, test)
+    acc <- accuracy(acc_prediction, test)[, c("RMSE", "MAE", "MAPE")]
 
     plot_pred <- plot_forecast(
       data = data,
@@ -128,7 +128,7 @@ predictions_server <- function(input, output, session) {
     model <- randomForest(formula_rf, data = train, ntree=100)
 
     pred_test <- predict(model, newdata = test)
-    acc <- accuracy(pred_test, test$price)
+    acc <- accuracy(pred_test, test$price)[, c("RMSE", "MAE", "MAPE")]
 
     latest <- df_lagged[nrow(df_lagged), paste0("lag", 1:horizon)]
     future_preds <- numeric(horizon)
@@ -171,7 +171,17 @@ predictions_server <- function(input, output, session) {
     #Let's take 100 trees for simplicity
     model <- xgboost(data = train_matrix, label = train$price, nrounds = 100, objective = "reg:squarederror", verbose = 0)
     pred_test <- predict(model, newdata = test_matrix)
-    acc <- accuracy(pred_test, test$price)
+    # Obliczanie metryk dokładności
+    errors <- test$price - pred_test
+    rmse <- sqrt(mean(errors^2))
+    mae <- mean(abs(errors))
+    mape <- mean(abs(errors / test$price)) * 100
+
+    acc <- data.frame(
+      RMSE = rmse,
+      MAE = mae,
+      MAPE = mape
+    )
 
     latest <- df_lagged[nrow(df_lagged), paste0("lag", 1:horizon)]
     future_preds <- numeric(horizon)
@@ -202,7 +212,9 @@ predictions_server <- function(input, output, session) {
 
   }
 
-  #TODO connect functions with the rest of server + UI
+  # ----------------------------------------
+  # Functions to UI connection
+  # ----------------------------------------
 
   # Get data for selected instrument
   selected_instrument_data <- reactive({
@@ -212,7 +224,6 @@ predictions_server <- function(input, output, session) {
     # Get data from Yahoo Finance
     # This is a placeholder - implement actual data retrieval
     data <- data.frame()
-
     return(data)
   })
 
@@ -227,44 +238,38 @@ predictions_server <- function(input, output, session) {
 
       # Get data
       data <- selected_instrument_data()
+      horizon <- input$pred_horizon
 
       # Run appropriate model based on selection
       if(input$predictor == "naive") {
-        # Naive model (last value prediction)
-        # This is a placeholder - implement actual model
+        model <- predict_with_naive(data, horizon)
       } else if(input$predictor == "ARIMA") {
-        # ARIMA model
-        # This is a placeholder - implement actual model
+        model <- predict_with_arima(data, horizon)
       } else if(input$predictor == "random_forest") {
-        # Random forest model
-        # This is a placeholder - implement actual model
+        model <- predict_with_random_forest(data, horizon)
       } else if(input$predictor == "xgb_boost") {
-        # XGBoost model
-        # This is a placeholder - implement actual model
+        model <- predict_with_xgboost(data, horizon)
       }
 
       # Store results in reactive values
-      model_results$predictions <- data.frame() # Replace with actual predictions
-      model_results$accuracy <- data.frame() # Replace with actual accuracy metrics
+      model_results$predictions <- model$prediction
+      model_results$accuracy <- model$accuracy
+      model_results$plot <- model$plot
       model_results$model_type <- input$predictor
+
+      showNotification("Zbudowano model predykcyjny " + input$predictor, type = "message", duration = 3)
     })
   })
 
   # Plot outputs
   output$prediction_plot <- renderPlotly({
     req(model_results$predictions)
-
-    # Create prediction plot
-    plot_ly() %>%
-      layout(title = paste0("Predykcja dla ", names(which(input$market == unlist(input$market)))))
+    ggplotly(model_results$plot)
   })
 
-  output$prediction_table <- renderPlotly({
+  output$prediction_table <- renderDT({
     req(model_results$predictions)
-
-    # Create table of prediction values
-    plot_ly() %>%
-      layout(title = "Wartości predykcji")
+    datatable(model_results$predictions)
   })
 
   # Table output

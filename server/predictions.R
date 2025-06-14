@@ -220,11 +220,18 @@ predictions_server <- function(input, output, session) {
   selected_instrument_data <- reactive({
     req(input$market)
     req(input$date_range)
-
-    # Get data from Yahoo Finance
-    # This is a placeholder - implement actual data retrieval
-    data <- data.frame()
-    return(data)
+    market <- input$market
+    from_date <- input$date_range[1]
+    to_date <- input$date_range[2]
+    data <- getSymbols(market, src = "yahoo",
+                        from = from_date,
+                        to = to_date,
+                        auto.assign = FALSE)
+    df <- data.frame(
+      time = index(data),
+      price = as.numeric(Cl(data))
+    )
+    return(df)
   })
 
   # Run prediction model when button is clicked

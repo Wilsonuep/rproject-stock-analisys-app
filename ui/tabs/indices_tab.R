@@ -16,8 +16,9 @@ indices_tab <- tabItem(tabName = "indices_performance",
   fluidRow(
     box(title = "Wyniki indeksów", width = 6, status = "info",
         selectInput("indices_perf_period", " Długość porównania:",
-                    choices = c("1-Dzień" = "1d", "1-Tydzień" = "1w",
-                                "1-Miesiąc" = "1m", "3-Miesiąc" = "3m",
+                    choices = c("1-Tydzień" = "1w",
+                                "1-Miesiąc" = "1m",
+                                "3-Miesiąc" = "3m",
                                 "1-rok" = "1y")),
         DTOutput("index_performance_table")
     ),

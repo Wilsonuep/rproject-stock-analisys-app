@@ -16,7 +16,7 @@ currency_tab <- tabItem(tabName = "curr_performance",
   fluidRow(
     box(title = "Wyniki walutowe", width = 6, status = "info",
         selectInput("curr_perf_period", " Długość porównania:",
-                    choices = c("1-Dzień" = "1d", "1-Tydzień" = "1w",
+                    choices = c("1-Tydzień" = "1w",
                                 "1-Miesiąc" = "1m", "3-Miesiąc" = "3m",
                                 "1-rok" = "1y")),
         DTOutput("curr_performance_table")

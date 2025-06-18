@@ -258,3 +258,29 @@ get_display_name <- function(symbol) {
     return(symbol)
   }
 }
+
+get_close_data <- function(symbols, start_date, end_date) {
+  data_list <- list()
+  for(symbol in symbols) {
+    data <- tryCatch({
+      getSymbols(symbol, src = "yahoo", from = start_date, to = end_date, auto.assign = FALSE)
+    }, error = function(e) {
+      return(NULL)
+    })
+    if(!is.null(data)) {
+      # Extract adjusted closing prices and name the column with the symbol
+      data_list[[symbol]] <- Ad(data)
+      colnames(data_list[[symbol]]) <- symbol
+    }
+  }
+  
+  # Merge all data into one xts object
+  if(length(data_list) > 0) {
+    merged_data <- do.call(merge, data_list)
+    return(merged_data)
+  } else {
+    message("No data could be fetched.")
+    return(NULL)
+  }
+}
+

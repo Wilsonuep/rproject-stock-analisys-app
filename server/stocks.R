@@ -64,7 +64,7 @@ stocks_server <- function(input, output, session) {
       Volatility = apply(diff(log(data_period)) * 100, 2, sd, na.rm = TRUE) * sqrt(252)
     )
     
-
+    colnames(performance) <- c("Symbol", "Cena początkowa", "Cena końcowa", "Całkowity zwrot", "Roczny zwrot", "Zmienność")
     return(performance)
   })
   
@@ -132,20 +132,34 @@ stocks_server <- function(input, output, session) {
   output$biggest_stock_lose <- renderInfoBox({
     # Find stock with biggest loss
     changes <- stocks_changes()
+    print(changes$change_pct)
+    print(which.min(changes$change_pct))
     biggest_loss_stock <- which.min((changes$change_pct))
     biggest_loss <- changes[biggest_loss_stock, ]
     formatted_pct <- paste0(
-      ifelse(biggest_loss$change_pct >= 0, "-", ""),
+      ifelse(biggest_loss$change_pct >= 0, "+", ""),
       round(biggest_loss$change_pct, 2),
       "%"
     )
-    infoBox(
-      "Największa strata",
-      biggest_loss$display_name,
-      formatted_pct, # Replace with actual data
-      icon = icon("arrow-down"),
-      color = "red"
-    )
+    if (biggest_loss$change_pct > 0) {
+      infoBox(
+        "Najmniejszy zysk",
+        biggest_loss$display_name,
+        formatted_pct, # Replace with actual data
+        icon = icon("arrow-up"),
+        color = "green"
+      )
+    }
+    else{
+      infoBox(
+        "Największa strata",
+        biggest_loss$display_name,
+        formatted_pct, # Replace with actual data
+        icon = icon("arrow-down"),
+        color = "red"
+      )
+    }
+    
   })
   
   # Plot outputs
@@ -232,9 +246,9 @@ stocks_server <- function(input, output, session) {
                  marker = list(size = 10, opacity = 0.7),
                  text = ~Asset,
                  textposition = "top center") %>%
-      layout(title = "Risk-Return Analysis",
-             xaxis = list(title = "Risk (Annualized Volatility %)"),
-             yaxis = list(title = "Return (Annualized %)"))
+      layout(title = "Analiza ryzyka i zwrotu",
+             xaxis = list(title = "Ryzyko (zmienność w ujęciu rocznym %)"),
+             yaxis = list(title = "Zwrot (% w ujęciu rocznym)"))
     
     return(p)
   })
@@ -246,10 +260,10 @@ stocks_server <- function(input, output, session) {
       pageLength = 15,
       scrollX = TRUE
     )) %>%
-      formatRound(columns = c("Start_Price", "End_Price"), digits = 2) %>%
-      formatRound(columns = c("Total_Return", "Annualized_Return", "Volatility"), digits = 2) %>%
+      formatRound(columns = c("Cena początkowa", "Cena końcowa"), digits = 2) %>%
+      formatRound(columns = c("Całkowity zwrot", "Roczny zwrot", "Zmienność"), digits = 2) %>%
       formatStyle(
-        'Total_Return',
+        'Całkowity zwrot',
         backgroundColor = styleInterval(c(0), c('rgba(255,0,0,0.3)', 'rgba(0,255,0,0.3)'))
       )
   })

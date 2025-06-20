@@ -21,7 +21,7 @@ currency_tab <- tabItem(tabName = "curr_performance",
                                 "1-rok" = "1y")),
         DTOutput("curr_performance_table")
     ),
-    box(title = "Analiza ryzyka i zysku", width = 6, status = "warning",
+    box(title = "Analiza ryzyka i zwrotu", width = 6, status = "warning",
         plotlyOutput("curr_risk_return_plot", height = 300)
     )
   )

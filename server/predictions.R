@@ -92,6 +92,8 @@ predictions_server <- function(input, output, session) {
       upper80 = as.numeric(pred$upper[,1]),      # górny 80%
       upper95 = as.numeric(pred$upper[,2])       # górny 95%
     )
+    colnames(pred_df) <- c("Okres", "Średnia", "Dolny 80%", "Dolny 95%", "Górny 80%", "Górny 95%")
+    pred_df$Okres <- NULL
     
     return(list(
       prediction = pred_df,
@@ -128,6 +130,8 @@ predictions_server <- function(input, output, session) {
       upper80 = as.numeric(pred$upper[,1]),      # górny 80%
       upper95 = as.numeric(pred$upper[,2])       # górny 95%
     )
+    colnames(pred_df) <- c("Okres", "Średnia", "Dolny 80%", "Dolny 95%", "Górny 80%", "Górny 95%")
+    pred_df$Okres <- NULL
 
     return(list(
       prediction = pred_df,
@@ -172,7 +176,8 @@ predictions_server <- function(input, output, session) {
       time = 1:horizon,
       mean = as.numeric(fc$mean)
     )
-    
+    colnames(fc_df) <- c("Okres", "Średnia")
+    fc_df$Okres <- NULL
     
 
     plot_obj <- plot_forecast(data, fc, forecast_label = "Predykcja Random Forest")
@@ -233,6 +238,8 @@ predictions_server <- function(input, output, session) {
       time = 1:horizon,
       mean = as.numeric(fc$mean)
     )
+    colnames(fc_df) <- c("Okres", "Średnia")
+    fc_df$Okres <- NULL
 
     plot_obj <- plot_forecast(data, fc, forecast_label = "Predykcja XGBoost")
 
@@ -311,8 +318,14 @@ predictions_server <- function(input, output, session) {
   # Table output
   output$prediction_accuracy_table <- renderDT({
     req(model_results$accuracy)
-
-    datatable(model_results$accuracy)
+    acc <- model_results$accuracy
+    if (nrow(acc) > 1){
+      rownames(acc) <- c("Zestaw treningowy", "Zestaw testowy") 
+    }
+    else{
+      rownames(acc) <- c("Zestaw testowy")
+    }
+    datatable(acc)
   })
   
   output$prediction_table <- renderDT({

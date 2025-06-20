@@ -4,7 +4,7 @@ sidebar <- dashboardSidebar(
     menuItem("Eksplorator danych", tabName = "data", icon = icon("database")),
     menuItem("Giełda indeksów", tabName = "indices_performance", icon = icon("line-chart")),
     menuItem("Giełda akcji", tabName = "stock_performance", icon = icon("area-chart")),
-    menuItem("Giełda walut", tabName = "curr_performance", icon = icon("money")),
+    menuItem("Giełda walut", tabName = "curr_performance", icon = icon("euro-sign")),
     menuItem("Model predykcji", tabName = "predictions", icon = icon("chart-line")),
     menuItem("About", tabName = "about", icon = icon("info-circle"))
   ),

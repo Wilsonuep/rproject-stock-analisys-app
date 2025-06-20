@@ -41,7 +41,7 @@ predictions_tab <- tabItem(tabName = "predictions",
         DTOutput("prediction_accuracy_table")
     ),
     box(title = "Wyniki predykcji", width = 6, status = "info",
-        plotlyOutput("prediction_table", height = 300)
+        DTOutput("prediction_table", height = 300)
     )
   )
 )

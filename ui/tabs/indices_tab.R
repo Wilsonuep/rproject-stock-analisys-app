@@ -22,7 +22,7 @@ indices_tab <- tabItem(tabName = "indices_performance",
                                 "1-rok" = "1y")),
         DTOutput("index_performance_table")
     ),
-    box(title = "Risk Analysis", width = 6, status = "warning",
+    box(title = "Analiza ryzyka i zwrotu", width = 6, status = "warning",
         plotlyOutput("index_risk_return_plot", height = 300)
     )
   )

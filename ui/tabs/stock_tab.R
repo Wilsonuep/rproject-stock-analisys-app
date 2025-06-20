@@ -21,7 +21,7 @@ stock_tab <- tabItem(tabName = "stock_performance",
                                 "1-rok" = "1y")),
         DTOutput("stocks_performance_table")
     ),
-    box(title = "Risk Analysis", width = 6, status = "warning",
+    box(title = "Analiza ryzyka i zwrotu", width = 6, status = "warning",
         plotlyOutput("stocks_risk_return_plot", height = 300)
     )
   )

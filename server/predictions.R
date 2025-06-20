@@ -69,21 +69,34 @@ predictions_server <- function(input, output, session) {
     time <- data$time
     price <- data$price
     prediction <- naive(price, h = horizon)
-
     sp_data <- split_time_series(data)
     train <- sp_data$train
     test <- sp_data$test
-    acc_model <- naive(train, h = length(test))
-    acc <- accuracy(acc_model, test)[, c("RMSE", "MAE", "MAPE")]
+    train_price <- train$price
+    test_price <- test$price
+    acc_model <- naive(train_price, h = length(test_price))
+    acc <- accuracy(acc_model, test_price)[, c("RMSE", "MAE", "MAPE")]
+    
 
     plot_pred <- plot_forecast(
       data = tibble(time = data$time, price = data$price),
       forecast = prediction,
       forecast_label = "Predykcja modelu naiwnego"
     )
-
+    pred <- prediction
+    pred_df <- data.frame(
+      time = time(pred$mean),                    # oś czasu
+      mean = as.numeric(pred$mean),              # predykcja punktowa
+      lower80 = as.numeric(pred$lower[,1]),      # dolny 80%
+      lower95 = as.numeric(pred$lower[,2]),      # dolny 95%
+      upper80 = as.numeric(pred$upper[,1]),      # górny 80%
+      upper95 = as.numeric(pred$upper[,2])       # górny 95%
+    )
+    colnames(pred_df) <- c("Okres", "Średnia", "Dolny 80%", "Dolny 95%", "Górny 80%", "Górny 95%")
+    pred_df$Okres <- NULL
+    
     return(list(
-      prediction = prediction,
+      prediction = pred_df,
       accuracy = acc,
       plot = plot_pred
     ))
@@ -108,9 +121,20 @@ predictions_server <- function(input, output, session) {
       forecast = prediction,
       forecast_label = "Predykcja modelu ARIMA"
     )
+    pred <- prediction
+    pred_df <- data.frame(
+      time = time(pred$mean),                    # oś czasu
+      mean = as.numeric(pred$mean),              # predykcja punktowa
+      lower80 = as.numeric(pred$lower[,1]),      # dolny 80%
+      lower95 = as.numeric(pred$lower[,2]),      # dolny 95%
+      upper80 = as.numeric(pred$upper[,1]),      # górny 80%
+      upper95 = as.numeric(pred$upper[,2])       # górny 95%
+    )
+    colnames(pred_df) <- c("Okres", "Średnia", "Dolny 80%", "Dolny 95%", "Górny 80%", "Górny 95%")
+    pred_df$Okres <- NULL
 
     return(list(
-      prediction = prediction,
+      prediction = pred_df,
       accuracy = acc,
       plot = plot_pred
     ))
@@ -123,35 +147,43 @@ predictions_server <- function(input, output, session) {
     split <- split_time_series(df_lagged)
     train <- split$train
     test <- split$test
+    
 
     formula_rf <- as.formula(paste("price ~", paste0("lag", 1:horizon, collapse = " + ")))
     model <- randomForest(formula_rf, data = train, ntree=100)
-
     pred_test <- predict(model, newdata = test)
-    acc <- accuracy(pred_test, test$price)[, c("RMSE", "MAE", "MAPE")]
+    acc <- accuracy(pred_test, test$price)
 
     latest <- df_lagged[nrow(df_lagged), paste0("lag", 1:horizon)]
     future_preds <- numeric(horizon)
-
-    full_model <- randomForest(formula_rf, data = data, ntree=100)
-
+    full_model <- randomForest(formula_rf, data = df_lagged, ntree=100)
+    
     for (i in 1:horizon) {
-      pred <- predict(full_model, newdata = as.data.frame(t(latest)))
+      pred <- predict(full_model, newdata = latest)
       future_preds[i] <- pred
-      latest <- c(tail(as.numeric(latest), -1), pred)
+      latest <- setNames(as.data.frame(t(c(tail(as.numeric(latest), -1), pred))), paste0("lag", 1:horizon))
     }
-
+    
+    
     fc <- list(
       mean = ts(future_preds, start = 1, frequency = 1),
       lower = matrix(NA, nrow = horizon, ncol = 2),
       upper = matrix(NA, nrow = horizon, ncol = 2)
     )
     class(fc) <- "forecast"
+    
+    fc_df <- data.frame(
+      time = 1:horizon,
+      mean = as.numeric(fc$mean)
+    )
+    colnames(fc_df) <- c("Okres", "Średnia")
+    fc_df$Okres <- NULL
+    
 
     plot_obj <- plot_forecast(data, fc, forecast_label = "Predykcja Random Forest")
 
     return(list(
-      prediction = fc,
+      prediction = fc_df,
       accuracy = acc,
       plot = plot_obj
     ))
@@ -187,12 +219,13 @@ predictions_server <- function(input, output, session) {
     future_preds <- numeric(horizon)
 
     full_matrix <- as.matrix(df_lagged[, paste0("lag", 1:horizon)])
-    full_model <- xgboost(data = full_matrix, label = data$price, nrounds = 100, objective = "reg:squarederror", verbose = 0)
-
+    label1 <- df_lagged$price
+    full_model <- xgboost(data = full_matrix, label = label1, nrounds = 100, objective = "reg:squarederror", verbose = 0)
     for (i in 1:horizon){
-      pred <- predict(full_model, newdata = as.matrix(t(latest)))
+      pred <- predict(full_model, newdata = as.matrix(latest))
       future_preds[i] <- pred
-      latest <- c(tail(as.numeric(latest), -1), pred)
+      latest <- setNames(as.data.frame(t(c(tail(as.numeric(latest), -1), pred))), paste0("lag", 1:horizon))
+      
     }
 
     fc <- list(
@@ -201,11 +234,17 @@ predictions_server <- function(input, output, session) {
       upper = matrix(NA, nrow = horizon, ncol = 2)
     )
     class(fc) <- "forecast"
+    fc_df <- data.frame(
+      time = 1:horizon,
+      mean = as.numeric(fc$mean)
+    )
+    colnames(fc_df) <- c("Okres", "Średnia")
+    fc_df$Okres <- NULL
 
     plot_obj <- plot_forecast(data, fc, forecast_label = "Predykcja XGBoost")
 
     return(list(
-      prediction = fc,
+      prediction = fc_df,
       accuracy = acc,
       plot = plot_obj
     ))
@@ -258,13 +297,14 @@ predictions_server <- function(input, output, session) {
         model <- predict_with_xgboost(data, horizon)
       }
 
+
       # Store results in reactive values
       model_results$predictions <- model$prediction
       model_results$accuracy <- model$accuracy
       model_results$plot <- model$plot
       model_results$model_type <- input$predictor
 
-      showNotification("Zbudowano model predykcyjny " + input$predictor, type = "message", duration = 3)
+      showNotification(paste0("Zbudowano model predykcyjny", input$predictor), type = "message", duration = 3)
     })
   })
 
@@ -274,15 +314,23 @@ predictions_server <- function(input, output, session) {
     ggplotly(model_results$plot)
   })
 
-  output$prediction_table <- renderDT({
-    req(model_results$predictions)
-    datatable(model_results$predictions)
-  })
 
   # Table output
   output$prediction_accuracy_table <- renderDT({
     req(model_results$accuracy)
-
-    datatable(model_results$accuracy)
+    acc <- model_results$accuracy
+    if (nrow(acc) > 1){
+      rownames(acc) <- c("Zestaw treningowy", "Zestaw testowy") 
+    }
+    else{
+      rownames(acc) <- c("Zestaw testowy")
+    }
+    datatable(acc)
+  })
+  
+  output$prediction_table <- renderDT({
+    req(model_results$accuracy)
+    pred <- model_results$predictions
+    datatable(pred)
   })
 }
